@@ -16,7 +16,6 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 @Getter
 @Table(name = "URLS")
 public class Url {
-
     @Id
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
@@ -24,5 +23,4 @@ public class Url {
     private String originalUrl;
     private LocalDateTime dateAndTimeCreated;
     private LocalDateTime expirationDateAndTime;
-
 }
