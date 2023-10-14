@@ -1,5 +1,6 @@
 package com.rdi.urlshortener.services;
 
+import com.rdi.urlshortener.dto.requests.GenerateShortUrlRequest;
 import com.rdi.urlshortener.dto.responses.DeleteUrlResponse;
 import com.rdi.urlshortener.dto.responses.GenerateShortUrlResponse;
 import com.rdi.urlshortener.exception.UrlExpiredException;
@@ -8,6 +9,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
+
+import java.net.URISyntaxException;
+import java.util.Objects;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -18,7 +23,7 @@ public class UrlShortenerServiceTest {
     @Autowired
     private UrlShortenerService urlShortenerService;
     private GenerateShortUrlResponse generateUrlResponse;
-    private final String url = "http://www.rdi.io";
+    private final GenerateShortUrlRequest url = new GenerateShortUrlRequest("http://www.rdi.io");
 
     @BeforeEach
     public void setUp() {
@@ -40,10 +45,10 @@ public class UrlShortenerServiceTest {
     }
 
     @Test
-    public void testShortUrlRedirect() throws UrlNotFoundException, UrlExpiredException {
-        String originalUrl = urlShortenerService.shortUrlRedirect(generateUrlResponse.getShortUrl());
-        assertThat(originalUrl).isNotNull();
-        assertEquals(originalUrl, url);
+    public void testShortUrlRedirect() throws UrlNotFoundException, UrlExpiredException, URISyntaxException {
+        HttpHeaders headers = urlShortenerService.shortUrlRedirect(generateUrlResponse.getShortUrl());
+        assertThat(headers).isNotNull();
+        assertEquals(Objects.requireNonNull(headers.getLocation()).toString(), url.getOriginalUrl());
     }
 
     @Test
@@ -63,7 +68,7 @@ public class UrlShortenerServiceTest {
                 () -> urlShortenerService.shortUrlRedirect(shortUrl));
         try {
             urlShortenerService.shortUrlRedirect(shortUrl);
-        } catch (UrlNotFoundException | UrlExpiredException exception) {
+        } catch (URISyntaxException | UrlNotFoundException | UrlExpiredException exception) {
             assertSame(exception.getMessage(), "URL NOT FOUND");
         }
     }
