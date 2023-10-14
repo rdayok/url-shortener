@@ -2,6 +2,7 @@ package com.rdi.urlshortener.utils;
 
 import com.rdi.urlshortener.data.models.Url;
 import com.rdi.urlshortener.dto.responses.GenerateShortUrlResponse;
+import com.rdi.urlshortener.dto.responses.UrlRedirectResponse;
 import org.modelmapper.ModelMapper;
 
 import java.time.LocalDateTime;
@@ -21,4 +22,5 @@ public class Mapper {
     public static GenerateShortUrlResponse map(Url savedUrl) {
         return mapper.map(savedUrl, GenerateShortUrlResponse.class);
     }
+
 }

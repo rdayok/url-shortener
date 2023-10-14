@@ -3,17 +3,22 @@ package com.rdi.urlshortener.services;
 import com.google.common.hash.Hashing;
 import com.rdi.urlshortener.data.models.Url;
 import com.rdi.urlshortener.data.repositories.UrlShortenerRepository;
+import com.rdi.urlshortener.dto.requests.GenerateShortUrlRequest;
 import com.rdi.urlshortener.dto.responses.DeleteUrlResponse;
 import com.rdi.urlshortener.dto.responses.GenerateShortUrlResponse;
 import com.rdi.urlshortener.exception.UrlExpiredException;
 import com.rdi.urlshortener.exception.UrlNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 
 import static com.rdi.urlshortener.utils.Mapper.map;
+
 
 @Service
 @RequiredArgsConstructor
@@ -22,8 +27,9 @@ public class RDIUrlShortenerService implements UrlShortenerService{
     private final UrlShortenerRepository urlShortenerRepository;
 
     @Override
-    public GenerateShortUrlResponse generateShortUrl(String originalUrl) {
-        String shortUrl = hashOriginalUrl(originalUrl );
+    public GenerateShortUrlResponse generateShortUrl(GenerateShortUrlRequest generateShortUrlRequest) {
+        String originalUrl = generateShortUrlRequest.getOriginalUrl();
+        String shortUrl = hashOriginalUrl(originalUrl);
         Url url = map(shortUrl, originalUrl);
         Url savedUrl = urlShortenerRepository.save(url);
         return map(savedUrl);
@@ -43,10 +49,13 @@ public class RDIUrlShortenerService implements UrlShortenerService{
     }
 
     @Override
-    public String shortUrlRedirect(String shortUrl) throws UrlExpiredException, UrlNotFoundException {
+    public HttpHeaders shortUrlRedirect(String shortUrl) throws UrlExpiredException, UrlNotFoundException, URISyntaxException {
         Url foundUrl = getUrl(shortUrl);
         checkIfUrlIsExpired(foundUrl);
-        return foundUrl.getOriginalUrl();
+        HttpHeaders headers = new HttpHeaders();
+        URI uri = new URI(foundUrl.getOriginalUrl());
+        headers.setLocation(uri);
+        return headers;
     }
 
     private void checkIfUrlIsExpired(Url foundUrl) throws UrlExpiredException {
